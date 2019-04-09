@@ -2,6 +2,8 @@
 
 PROJECT IN ACTION: https://www.youtube.com/watch?v=a_CEIS67d4s&feature=youtu.be
 
+SCREENSHOTS: https://www.dropbox.com/sh/du1fmj5sz4n0lah/AAA68aWi0zAgOm1e0m3ciWcIa?dl=0
+
 PROJECT DESCRIPTION:
 
 ### Overview
