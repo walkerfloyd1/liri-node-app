@@ -8,6 +8,8 @@ var keys = require("./keys.js");
 
 var spotify = require("node-spotify-api");
 
+var spotifyKeys = new spotify (keys.spotify);
+
 var moment = require("moment");
 
 var args = process.argv;
@@ -21,16 +23,16 @@ var userInput = args.splice(3).join(" ");
 if (command === "concert-this") {
     var bandsInTownUrl = "https://rest.bandsintown.com/artists/" + userInput + "/events?app_id=codingbootcamp";
     console.log(bandsInTownUrl);
-    axios.get(bandsInTownUrl).then(function(err,response) {
-        console.log(response);
+    axios.get(bandsInTownUrl).then(function(response, err) {
         if (!err) {
-            var performances = JSON.parse(response);
+            var performances = response.data;
             for (var i = 0; i < performances.length; i++) {
-                console.log("Name of the venue: " + performances[i].venue.name);
+                console.log("\nName of the venue: " + performances[i].venue.name);
                 console.log("Location: " + performances[i].venue.city);
-                var date = moment().format(concert[i].datetime);
+                var date = moment(performances[i].datetime).format("MM/DD/YY");
                 console.log("Date of the concert: " + date); 
-        }
+            }
+        
     }
         else {
             console.log("There has been an error!")
@@ -41,73 +43,80 @@ if (command === "concert-this") {
 }
 
 else if (command === "spotify-this-song") {
-    var spotifyUrl = "https://api.spotify.com/v1/search?q=" + userInput + "&type=track&market=US&limit=1";
-    spotifySearch.get(spotifyUrl).then(function(err, response) {
-        if (err) {
+    if (!userInput) {
+        var userInput = "The Sign Ace of Base";
+    }
+    spotifyKeys.search({
+        type: "track",
+        query: userInput,
+    }).then(function(response, err) {
+        if (!err) {
+        var songInfo = response.tracks.items[0];
+        
+        console.log("Song Title: " +  songInfo.name),
+        console.log("Album Title: " + songInfo.album.name),
+        console.log("Artists: " + songInfo.artists[0].name),
+        console.log("Hear a snippet: " + songInfo.external_urls.spotify);
+        }
+        else if (err) {
             console.log("There has been an error!");
         }
-        else {
-            var spotify = new Spotify(keys.spotify);
-            if (!userInput) {
-                var userInput = "The Sign";
-            };
-            spotify.search({
-                    type: 'track',
-                    query: searchObject
-                }, function (err, data) {
-                    var songInfo = data.tracks.items[0].album;
-                    if (err) {
-                        console.log("An error occured!");
-                    }
-                    else {
-                        console.log("Song Title: " + userInput);
-                        console.log("Album Title: " + songInfo.name);
-                        console.log("Artists: " + songInfo.artists.name);
-                        console.log("Hear a snippet: " + songInfo.external_urls.spotify);
-                    }
-                })
-            
-        }
-    })
+        
+
+    }
+    
+)
 }
+    
 else if (command === "movie-this") {
-    var omdbUrl = "http://www.omdbapi.com/?t=" + userInput;
-    axios.get(omdbUrl, function(err, response, body) {
-        if (err) {
-            console.log("There has been an error!")
-        }
-        else if (!userInput) {
-            userInput = "Mr. Nobody";
-        }
-        var response = JSON.parse(body);
-        console.log("Title: " + response.Title);
+    if (!userInput) {
+        userInput = "Mr. Nobody";
+    };
+    var omdbUrl = "http://www.omdbapi.com/?t=" + userInput + "&y=&plot=short&apikey=trilogy";
+    
+    axios.get(omdbUrl).then(function(response, err) {
+        var response = response.data;
+        console.log("\nTitle: " + response.Title);
         console.log("Release Year: " + response.Year);
         console.log("IMDb Rating: " + response.imdbRating);
-        console.log("Rotten Tomatoes Score: " + response.Ratngs[1].Value);
+        console.log("Rotten Tomatoes Score: " + response.Ratings[1].Value);
         console.log("Country: " + response.Country);
         console.log("Language: " + response.Language);
         console.log("Plot: " + response.Plot);
         console.log("Actors: " + response.Actors);
+
+        if (err) {
+            console.log("There has been an error!")
+        }
     })
 }
 else if (command === "do-what-it-says") {
     fs.readFile("random.txt", "utf8", function(err, data) {
-        console.log(userInput)
-        spotify.search({
-            type: 'track',
-            query: userInput
-        }, function (err, data) {
-            var songInfo = data.tracks.items[0].album;
-            if (err) {
-                console.log("An error occured!");
+        if (err) {
+            console.log(err)
+        }
+        else {
+        var dataArray = data.split(",");
+        userInput = dataArray[1];
+        spotifyKeys.search({
+            type: "track",
+            query: userInput,
+        }).then(function(response, err) {
+            if (!err) {
+            var songInfo = response.tracks.items[0];
+            
+            console.log("Song Title: " +  songInfo.name),
+            console.log("Album Title: " + songInfo.album.name),
+            console.log("Artists: " + songInfo.artists[0].name),
+            console.log("Hear a snippet: " + songInfo.external_urls.spotify);
             }
-            else {
-                console.log("Song Title: " + searchObject);
-                console.log("Album Title: " + songInfo.name);
-                console.log("Artists: " + songInfo.artists.name);
-                console.log("Hear a snippet: " + songInfo.external_urls.spotify);
+            else if (err) {
+                console.log("There has been an error!");
             }
+            
+    
         })
+    }
     })
 }
 
